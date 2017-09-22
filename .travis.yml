@@ -1,0 +1,11 @@
+# Do NOT change this file!
+
+
+language: c
+sudo: required
+dist: trusty
+install:
+    - ./pre_setup.sh
+    - make clean all
+script:
+    - travis_wait 45 make -k test

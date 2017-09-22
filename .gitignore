@@ -1,0 +1,20 @@
+# Folders #
+###########
+__pycache__/
+*.egg-info/
+
+# Junk #
+########
+.DS_Store*
+.*.swp
+*.swp
+*.log
+*~
+
+# Binary Stuff #
+################
+sniffer
+rst_http
+hijack_telnet
+*.o
+*.pyc
