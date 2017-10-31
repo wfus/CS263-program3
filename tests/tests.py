@@ -149,7 +149,8 @@ def _sniffer_icmp_custom_check(dp, sp):
     ]))
     icmp_match = icmp_re.fullmatch(sp_lines[3])
     assert icmp_match, \
-        'ERROR: fourth log line must match regex: {} \n{}'.format(icmp_re, sp_lines)
+        'ERROR: fourth log line must match regex: {}'.format(icmp_re)
+
     icmp_type = icmp_match.group('type')
     if dp.ip.icmp.type == dpkt.icmp.ICMP_ECHO:
         assert icmp_type == b'ICMP_ECHO', \
@@ -237,7 +238,7 @@ def _sniffer_tcp_custom_check(dp, sp):
 
     tcp2_match = tcp2_re.fullmatch(sp_lines[4])
     assert tcp2_match, \
-        'ERROR: fifth log line must match regex: {} \n{}'.format(tcp2_re, sp_lines)
+        'ERROR: fifth log line must match regex: {}'.format(tcp2_re)
     assert dp.ip.tcp.seq == int(tcp2_match.group('seq')), \
         'ERROR: incorrect TCP sequence number'
     expected_ack = 0
@@ -262,9 +263,9 @@ def _sniffer_tcp_custom_check(dp, sp):
 
     datalines = sp_lines[6:]
     assert all(len(l) <= 16 for l in datalines), \
-        'ERROR: TCP data output must be wrapped 16-char!\n{}'.format(datalines)
+        'ERROR: TCP data output must be wrapped 16-char!'
     assert b''.join(datalines) == b''.join(dp.ip.tcp.data.splitlines()), \
-        'ERROR: incorrect TCP data \n{}\n{}'.format(b''.join(datalines), b''.join(dp.ip.tcp.data.splitlines()))
+        'ERROR: incorrect TCP data'
 
 
 def test_sniffer_tcp():
