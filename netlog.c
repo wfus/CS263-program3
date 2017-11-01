@@ -274,4 +274,62 @@ void log_icmp(struct icmp_hdr* icmpheader) {
 
 
 
+void log_everything(struct pcap_pkthdr* header, const u_char* data) {
+    struct ip_hdr* ipheader;
+    struct tcp_hdr* tcpheader;
+    struct icmp_hdr* icmpheader;
+    struct ethernet_hdr* ethheader;
+    u_char* payload;
+
+    bool has_ip_header = true;
+    bool has_tcp_header = false;
+    bool has_payload = true;
+    bool has_icmp = false;
+    // caplen is the length of the packet we captured
+    // len is the actual length the packet is supposed to be
+    // printf("%ld %ld\n", header->caplen, header->len);
+
+    int ip_size;
+    int tcp_size;
+    int payload_size;
+    
+    
+    ethheader = (struct ethernet_hdr*) data;
+    ipheader = (struct ip_hdr*) (data + ETHER_HDR_LEN);
+    ip_size = ipheader->ip_hlen * 4;
+    if (ip_size < 20) {
+        has_ip_header = false;
+    }   
+    if (ipheader->ip_protocol == IP_ICMP) {
+        icmpheader = (struct icmp_hdr*) (data + ip_size + ETHER_HDR_LEN);
+        has_icmp = true;
+    } else if (ipheader->ip_protocol == IP_TCP) {
+        has_tcp_header = true;
+    }   
+    
+    tcpheader = (struct tcp_hdr*) (data + ETHER_HDR_LEN + ip_size);
+    tcp_size = (tcpheader->tcp_off) * 4;
+    if (tcp_size < 20) {
+        //has_tcp_header = false;
+        printf("TCP: Size %d\n", tcp_size);
+        printf("TCP: Offset %x", tcpheader->tcp_off);
+    }   
+    
+    payload = (u_char*) (data + ETHER_HDR_LEN + ip_size + tcp_size);
+    payload_size = ntohs(ipheader->ip_len) - (ip_size + tcp_size);
+    if (payload_size <= 0) {
+        has_payload = false;
+    }
+
+    log_ethernet(ethheader);
+    if (has_ip_header)  log_ip(ipheader);
+    if (has_tcp_header) log_tcp(tcpheader, payload_size);
+    if (has_payload && has_tcp_header)    log_payload(payload, payload_size);
+    if (has_icmp)       log_icmp(icmpheader);
+    printf("\n");
+
+}
+
+
+
 
