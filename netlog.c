@@ -84,7 +84,7 @@ void log_tcp(struct tcp_hdr* tcpheader, int payload_size) {
 		ntohl(tcpheader->tcp_ack)	
 	);
 	int tcp_header_len = (tcpheader->tcp_off) * 4;
-    printf("\ttcp_hdr_len[%d] tcp_data_len[%d] flags: %s\n",
+    printf("\ttcp_hdr_len[%d] tcp_data_len[%d] flags:%s\n",
 		tcp_header_len,
 		payload_size,
 		flag
@@ -110,13 +110,15 @@ void log_tcp_nolength(struct tcp_hdr* tcpheader) {
         ntohs(tcpheader->tcp_src_port),
         ntohs(tcpheader->tcp_dst_port)
     );
-	printf("\tseq_num[%d] ack_num[%d]\n",
+	printf("\tseq_num[%u] ack_num[%u]\n",
 		ntohl(tcpheader->tcp_seq),
 		ntohl(tcpheader->tcp_ack)	
 	);
-    printf("\ttcp_hdr_len[] tcp_data_len[] flags:%s\n",
+	printf("\twindow_size[%d] flag:%s\n",
+		ntohs(tcpheader->tcp_win),
 		flag
 	);
+	return;
 }
 
 void print_ascii_line(const u_char* payload, int length, int offset) {
@@ -124,7 +126,7 @@ void print_ascii_line(const u_char* payload, int length, int offset) {
 	ch = payload;
 	for (int i = 0; i < length; i++) {
 		if (isprint(*ch)) printf("%c", *ch);
-		else              printf(""); // non-ascii character
+		// else              printf(""); // non-ascii character
 		ch++;	
 	}
 	printf("\n");
@@ -180,7 +182,7 @@ void log_payload(u_char* payload, int length) {
 	int line_len;
 	int offset = 0;
 	const u_char *ch = payload;
-	int printed_ctr = 0;
+	// int printed_ctr = 0;
 
 	/*
 	while(length > 0) {

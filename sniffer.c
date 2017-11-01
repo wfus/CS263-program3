@@ -123,13 +123,17 @@ void sniffer_main_loop(pcap_t* pd) {
 
 int main (int argc, char** argv) {
 
-	if (argc != 2) {
-		printf("Usage: sniffer <dev_name>");
+	if (argc != 2 && argc != 1) {
+		printf("Usage: sniffer [dev_name]");
 		exit(1);
 	}
-	char* input = argv[1];
-	
-	if ((handler = open_pcap_socket(input))) {
+	char inputDevice[128];
+	if (argc == 2) {
+		strcpy(inputDevice, argv[1]);
+	}
+
+	char filterbuf[] = "not port 22";	
+	if ((handler = open_pcap_socket_filtered(inputDevice, filterbuf))) {
 		signal(SIGTERM, leavesniffer);
 		signal(SIGINT, leavesniffer);
 		signal(SIGQUIT, leavesniffer);

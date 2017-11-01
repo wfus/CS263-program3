@@ -5,7 +5,7 @@
 
 
 CFLAGS=-std=gnu11 -O2 -Wall
-LDFLAGS=-lpcap
+LDFLAGS=-lpcap -lnet
 NOSEFLAGS=-v -s
 
 .PHONY: all
@@ -25,10 +25,10 @@ sniffer: sniffer.h sniffer.c
 	gcc $(CFLAGS) -o sniffer sniffer.c netlib.c netlog.c $(LDFLAGS)
 
 rst_http: sniffer.h rst_http.c
-	gcc $(CFLAGS) -o rst_http rst_http.c
+	gcc $(CFLAGS) -o rst_http rst_http.c netlib.c netlog.c $(LDFLAGS)
 
 hijack_telnet: sniffer.h hijack_telnet.c
-	gcc $(CFLAGS) -o hijack_telnet hijack_telnet.c
+	gcc $(CFLAGS) -o hijack_telnet hijack_telnet.c netlib.c netlog.c $(LDFLAGS)
 
 
 # Do NOT change anything below!
