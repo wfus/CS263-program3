@@ -33,6 +33,18 @@ void leavesniffer(int sig) {
 }
 
 
+
+void disrupt_session(const u_char* data, struct ip_hdr* ipheader, struct tcp_hdr* tcpheader, struct ethernet_hdr* ethheader) {
+	
+	uint32_t ack_inc; // Amount to increment ACK
+	uint32_t seq_inc; // Amount to increment SEQ
+	
+
+
+	return;
+}
+
+
 void parse_pkt(struct pcap_pkthdr* header, const u_char* data) {
     struct ip_hdr* ipheader;
     struct tcp_hdr* tcpheader;
@@ -107,15 +119,15 @@ void main_loop(pcap_t* pd) {
             main_loop(pd);
             break;
         case -1:
-            printf("libpcap error in mainloop() - exiting...");
+            printf("libpcap error in mainloop() - exiting...\n");
             leavesniffer(1);
             break;
         case -2:
-            printf("Breakloop called - exiting...");
+            printf("Breakloop called - exiting...\n");
             leavesniffer(0);
             break;
         default:
-            printf("Recieved unrecognized status in mainloop()...");
+            printf("Recieved unrecognized status in mainloop()...\n");
             leavesniffer(1);
             break;
     }
@@ -127,10 +139,9 @@ void main_loop(pcap_t* pd) {
 
 int main (int argc, char** argv) {
 	if (argc < 3 || argc > 4) {
-		printf("Usage: ");
-		printf("hijack_telnet server_name server_port");
-		printf(" [dev_name]\n");
-		exit(1);
+		printf("Usage: \n");
+		printf("hijack_telnet server_name server_port [dev_name]\n");
+		return 1;
 	}
 	char server[INFO_BUFFER];
 	char device[INFO_BUFFER];
@@ -153,9 +164,15 @@ int main (int argc, char** argv) {
 			signal(SIGQUIT, leavesniffer);
 			main_loop(handler);
 			leavesniffer(0);	
+		} else {
+			printf("Libnet could not be allocated...\n");
+			return 1;
 		}
+	} else {
+		printf("Handler could not be allocated...\n");
+		return 1;
 	}
 
-	
+	return 0;
 }
 

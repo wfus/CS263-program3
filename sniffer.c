@@ -104,15 +104,15 @@ void sniffer_main_loop(pcap_t* pd) {
 			sniffer_main_loop(pd);
 			break;
 		case -1:
-			printf("libpcap error in mainloop() - exiting...");
+			printf("libpcap error in mainloop() - exiting...\n");
 			leavesniffer(1);
 			break;
 		case -2:
-			printf("Breakloop called - exiting...");
+			printf("Breakloop called - exiting...\n");
 			leavesniffer(0);
 			break;
 		default:
-			printf("Recieved unrecognized status in mainloop()...");
+			printf("Recieved unrecognized status in mainloop()...\n");
 			leavesniffer(1);
 			break;
 	}

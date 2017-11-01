@@ -4,7 +4,7 @@
 # rules to make the linker happy.
 
 
-CFLAGS=-std=gnu11 -O2 -Wall
+CFLAGS=-std=gnu11 -O2 
 LDFLAGS=-lpcap -lnet
 NOSEFLAGS=-v -s
 

