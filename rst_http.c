@@ -90,9 +90,14 @@ int main (int argc, char** argv) {
 	// sprintf(filterbuf, "tcp port %d", port);
 	if ((handler = open_pcap_socket_filtered(device, filterbuf))) {
 		if ((netcons = open_libnet_handler(device))) {
-			signal(SIGTERM, leavesniffer); 
-			signal(SIGINT, leavesniffer);
-			signal(SIGQUIT, leavesniffer);
+			
+			struct sigaction s;
+			memset(&s, 0, sizeof(s));
+			s.sa_handler = leavesniffer;
+			sigaction(SIGTERM, &s, NULL);
+        	sigaction(SIGINT, &s, NULL);
+        	sigaction(SIGQUIT, &s, NULL);	
+		
 			main_loop(handler);
 			leavesniffer(0);
 		}

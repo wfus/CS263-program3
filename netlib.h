@@ -28,3 +28,8 @@ void attack_packet_header(libnet_t* l, const u_char* packet, u_char* payload);
 
 void send_tcp_packet(libnet_t* l, struct in_addr srcip, struct in_addr dstip, u_short srcport, u_short dstport, uint32_t seq, uint32_t ack, struct ethernet_hdr* ethheader);
 
+
+void send_rude_tcp(libnet_t* l, u_long srcip, u_long dstip, uint16_t srcport, uint16_t dstport, u_char flags, uint32_t seq, uint32_t ack, u_char* data, int datalength);
+
+
+

@@ -233,82 +233,63 @@ void attack_packet_header(libnet_t* l, const u_char* packet, u_char* payload) {
 }
 
 
+void send_rude_tcp(libnet_t* l, u_long srcip, u_long dstip, uint16_t srcport, uint16_t dstport, u_char flags, uint32_t seq, uint32_t ack, u_char* data, int datalength) {
 
-
-/*
-void send_tcp_packet(libnet_t* l, struct in_addr srcip, struct in_addr dstip, u_short srcport, u_short dstport, uint32_t seq, uint32_t ack, struct ethernet_hdr* ethheader) {
-	
 	libnet_ptag_t t;
-	libnet_seed_prand(l);
-	
-	t = libnet_build_tcp(
-		srcport, // src port
-		dstport,  // dst port
-		seq,      // seq num
-		ack,     // ack num
-		TCP_PUSH | TCP_ACK, // tcp flag
-		10000, // window size
-		0, //checksum, 0 for autofill
-		0, // urgent pointer
-		LIBNET_TCP_H,  // packet size
-		NULL, //payload
-		0, //payload size
-		l,  // libnet handle
-		0 // ptag protocol tag to modify existing header
+
+	libnet_build_tcp(
+		srcport,
+		dstport,
+		seq,
+		ack,
+		flags,
+		50000,
+		0,
+		0,
+		0,
+		(uint8_t *) data,
+		datalength,
+		l,
+		0
 	);
 
 	if (t == -1) {
-		printf("Failed to build TCP header: %s\n",
+		printf("Problem creating TCP layer: %s\n",
 			libnet_geterror(l)
 		);
 		exit(1);
 	}
 
-	t = libnet_build_ipv4(
-		LIBNET_IPV4 + LIBNET_TCP_H, // length
-		IPTOS_LOWDELAY,     // type of service
-		0, // ip id
-		0,  // ip fragmentation
-		255, // ttl
-		IP_TCP, // IP protocol
-		0,    // checksum
-		*((u_long*) &(srcip)), //source ip
-		*((u_long*) &(dstip)), // destination
-		NULL,     // payload
-		0,    // payload size
-		l,     // libnet handle
-		0      // libnet id
+	libnet_build_ipv4(
+		LIBNET_TCP_H,
+		IPTOS_LOWDELAY,
+		libnet_get_prand(LIBNET_PRu16),
+		0,
+		255,
+		IPPROTO_TCP,
+		0,
+		srcip,
+		dstip,
+		NULL,
+		0,
+		l,
+		0
 	);
 
 	if (t == -1) {
-		printf("Failed to IP header: %s\n",
-			libnet_geterror(l)
-		);
-		exit(1);
-	}
-
-	t = libnet_autobuild_ethernet(
-		ethheader->ether_src_addr, // dst 
-		0,        // libnet protocol tag
-		l     // libnet handler
-	);
-
-	if (t == -1) {
-		printf("Failed to build Ethernet header: %s\n",
+		printf("Problem creating IP layer: %s\n",
 			libnet_geterror(l)
 		);
 		exit(1);
 	}
 
 	if (libnet_write(l) == -1) {
-		printf("Failed to write packet: %s\n", 
+		printf("Problem writing packet: %s\n",
 			libnet_geterror(l)
 		);
 		exit(1);
 	}
 	libnet_clear_packet(l);
-	return;
-}
-*/
 
+}
 
