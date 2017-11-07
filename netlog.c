@@ -48,10 +48,14 @@ void log_ip(struct ip_hdr* ipheader) {
 		default:
 			strcpy(protocol, "PROTOCOL_UNKNOWN");
 			break;  
-	}   
+	}  
+	char ipsrcstr[128];
+	char ipdststr[128];
+	strcpy(ipsrcstr, inet_ntoa(ipheader->ip_src_addr));
+	strcpy(ipdststr, inet_ntoa(ipheader->ip_dst_addr)); 
 	printf("IP: src[%s] dst[%s]\n", 
-		inet_ntoa(ipheader->ip_src_addr),   
-		inet_ntoa(ipheader->ip_dst_addr)
+		ipsrcstr,
+		ipdststr
 	);  
 	printf("\tip_hdr_len[%d] ip_data_len[%d] Protocol: %s\n",
 		(ipheader->ip_hlen * 4),
@@ -311,8 +315,8 @@ void log_everything(struct pcap_pkthdr* header, const u_char* data) {
     tcp_size = (tcpheader->tcp_off) * 4;
     if (tcp_size < 20) {
         //has_tcp_header = false;
-        printf("TCP: Size %d\n", tcp_size);
-        printf("TCP: Offset %x", tcpheader->tcp_off);
+        // printf("TCP: Size %d\n", tcp_size);
+        // printf("TCP: Offset %x", tcpheader->tcp_off);
     }   
     
     payload = (u_char*) (data + ETHER_HDR_LEN + ip_size + tcp_size);

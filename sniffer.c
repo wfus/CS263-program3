@@ -79,17 +79,20 @@ int main (int argc, char** argv) {
 		strcpy(inputDevice, argv[1]);
 	}
 
+	struct sigaction s;
+	memset(&s, 0, sizeof(s));
+	s.sa_handler = leavesniffer;
+	
+	sigaction(SIGTERM, &s, NULL);
+	sigaction(SIGINT, &s, NULL);
+	sigaction(SIGQUIT, &s, NULL);
+	
+
+
 	char filterbuf[] = "not port 22";	
 	if ((handler = open_pcap_socket_filtered(inputDevice, filterbuf))) {
 		
-		struct sigaction s;
-		memset(&s, 0, sizeof(s));
-		s.sa_handler = leavesniffer;
 		
-		sigaction(SIGTERM, &s, NULL);
-		sigaction(SIGINT, &s, NULL);
-		sigaction(SIGQUIT, &s, NULL);
-			
 		sniffer_main_loop(handler);
 		leavesniffer(0);		
 	}
