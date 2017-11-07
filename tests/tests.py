@@ -65,8 +65,8 @@ def _split_sniffer(sniffer_file):
 
 def _test_sniffer_helper(dumpcap_pkts, sniffer_pkts, custom_check=None):
     assert len(dumpcap_pkts) == len(sniffer_pkts), \
-        'ERROR: received {} packets from sniffer (expected {})\n{}\n{}'.format(
-            len(sniffer_pkts), len(dumpcap_pkts), str(sniffer_pkts), str(dumpcap_pkts))
+        'ERROR: received {} packets from sniffer (expected {})'.format(
+            len(sniffer_pkts), len(dumpcap_pkts))
 
     mac_re_part = br'(([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2}))'
     eth_re = re.compile(br''.join([
