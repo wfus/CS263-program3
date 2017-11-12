@@ -96,35 +96,6 @@ void log_tcp(struct tcp_hdr* tcpheader, int payload_size) {
 }
 
 
-void log_tcp_nolength(struct tcp_hdr* tcpheader) {
-	char flag[128];
-	char* curr = flag;
-	if (tcpheader->tcp_flags & TCP_FIN) curr += sprintf(curr, " %s", "FIN");
-	if (tcpheader->tcp_flags & TCP_SYN) curr += sprintf(curr, " %s", "SYN");
-	if (tcpheader->tcp_flags & TCP_RST) curr += sprintf(curr, " %s", "RST");
-	if (tcpheader->tcp_flags & TCP_PUSH) curr += sprintf(curr, " %s", "PUSH");
-	if (tcpheader->tcp_flags & TCP_ACK) curr += sprintf(curr, " %s", "ACK");
-	if (tcpheader->tcp_flags & TCP_URG) curr += sprintf(curr, " %s", "URG");
-	if (tcpheader->tcp_flags & TCP_ECE) curr += sprintf(curr, " %s", "ECE");
-	if (tcpheader->tcp_flags & TCP_CWR) curr += sprintf(curr, " %s", "CWR");
-
-
-	printf("TCP: ");
-    printf("src_port[%d] dst_port[%d]\n",
-        ntohs(tcpheader->tcp_src_port),
-        ntohs(tcpheader->tcp_dst_port)
-    );
-	printf("\tseq_num[%u] ack_num[%u]\n",
-		ntohl(tcpheader->tcp_seq),
-		ntohl(tcpheader->tcp_ack)	
-	);
-	printf("\twindow_size[%d] flag:%s\n",
-		ntohs(tcpheader->tcp_win),
-		flag
-	);
-	return;
-}
-
 void print_ascii_line(const u_char* payload, int length, int offset) {
 	const u_char* ch;
 	ch = payload;
@@ -138,47 +109,6 @@ void print_ascii_line(const u_char* payload, int length, int offset) {
 }
 
 
-void print_hex_ascii_line(const u_char* payload, int length, int offset) {
-	int gap;
-	const u_char *ch;
-
-	// offset
-	printf("%05d    ", offset);
-	
-	// hex
-	ch = payload;
-	for (int i = 0; i < length; i++) {
-		printf("%02x ", *ch);
-		ch++;
-		// print extra space after every 8th byte
-		if (i % 8 == 7) printf(" ");	
-	}
-
-	/* print space to handle line less than 8 bytes */
-	if (length < 8) printf(" ");
-
-	/* fill hex gap with spaces if not full line */
-	if (length < 16) {
-		gap = 16 - length;
-		for (int i = 0; i < gap; i++) {
-			printf("   ");
-		}
-	}
-	printf("    ");
-
-	/* print out ASCII if printable */
-	ch = payload;
-	for (int i = 0; i < length; i++) {
-		if (isprint(*ch)) printf("%c", *ch);
-		else              printf(".");
-		ch++;
-	}
-
-	printf("\n");
-	return;
-}
-
-
 void log_payload(u_char* payload, int length) {
 
 	int remaining = length;
@@ -186,19 +116,6 @@ void log_payload(u_char* payload, int length) {
 	int line_len;
 	int offset = 0;
 	const u_char *ch = payload;
-	// int printed_ctr = 0;
-
-	/*
-	while(length > 0) {
-		if (isprint(*ch)) {
-			printf("%c", *ch);
-			printed_ctr++;
-		}
-		if (printed_ctr % 16 == 0) printf("\n");
-		ch++;
-		length--;
-	}
-	*/
 	
 	if (length <= 0) return;
 	if (length <= line_width) {
@@ -217,7 +134,6 @@ void log_payload(u_char* payload, int length) {
 			break;
 		}
 	}
-	return;
 }
 
 
@@ -273,11 +189,14 @@ void log_icmp(struct icmp_hdr* icmpheader) {
 		ntohs(icmpheader->un.echo.id),
 		ntohs(icmpheader->un.echo.seq)
 	);
-
 }
 
 
-
+/*
+ * Calculates the header sizes and logs all ICMP, 
+ * IP, TCP, or the payload if present. Basically prints
+ * everything out in the format needed for the sniffer
+ **/
 void log_everything(struct pcap_pkthdr* header, const u_char* data) {
     struct ip_hdr* ipheader;
     struct tcp_hdr* tcpheader;
@@ -289,9 +208,6 @@ void log_everything(struct pcap_pkthdr* header, const u_char* data) {
     bool has_tcp_header = false;
     bool has_payload = true;
     bool has_icmp = false;
-    // caplen is the length of the packet we captured
-    // len is the actual length the packet is supposed to be
-    // printf("%ld %ld\n", header->caplen, header->len);
 
     int ip_size;
     int tcp_size;
@@ -331,7 +247,6 @@ void log_everything(struct pcap_pkthdr* header, const u_char* data) {
     if (has_payload && has_tcp_header)    log_payload(payload, payload_size);
     if (has_icmp)       log_icmp(icmpheader);
     printf("\n");
-
 }
 
 

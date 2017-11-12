@@ -29,12 +29,7 @@ struct tcp_hdr* global_tcpheader;
 uint32_t global_seq;
 
 
-
-void leavesniffer(int sig) {
-	struct pcap_stat stats;
-	if (pcap_stats(handler, &stats) >= 0) {
-	
-	}
+void leave(int sig) {
 	pcap_close(handler);
 	libnet_destroy(netcons);
 	exit(0);
@@ -42,10 +37,8 @@ void leavesniffer(int sig) {
 
 
 void parse_pkt(struct pcap_pkthdr* header, const u_char* data) {
-
 	log_everything(header, data);
 	attack_packet(netcons, header, data);
-
 }
 
 
@@ -65,10 +58,10 @@ void main_loop(pcap_t* pd) {
 			break;
 		case -2:
 			printf("Breakloop called - exiting...");
-			leavesniffer(0);
+			leave(0);
 		default:
 			printf("Recieved unrecognized status in mainloop().");
-			leavesniffer(1);
+			leave(1);
 	}
 	return;
 }
@@ -85,21 +78,19 @@ int main (int argc, char** argv) {
 		strncpy(device, argv[2], DEVICE_BUF_SIZE);
 	}
 
+	struct sigaction s;
+	memset(&s, 0, sizeof(s));
+	s.sa_handler = leave;
+	sigaction(SIGTERM, &s, NULL);
+   	sigaction(SIGINT, &s, NULL);
+	sigaction(SIGQUIT, &s, NULL);	
+		
 	char filterbuf[DEVICE_BUF_SIZE];
 	sprintf(filterbuf, "tcp port %d and src port %d and inbound", port, port);
-	// sprintf(filterbuf, "tcp port %d", port);
 	if ((handler = open_pcap_socket_filtered(device, filterbuf))) {
 		if ((netcons = open_libnet_handler(device))) {
-			
-			struct sigaction s;
-			memset(&s, 0, sizeof(s));
-			s.sa_handler = leavesniffer;
-			sigaction(SIGTERM, &s, NULL);
-        	sigaction(SIGINT, &s, NULL);
-        	sigaction(SIGQUIT, &s, NULL);	
-		
 			main_loop(handler);
-			leavesniffer(0);
+			leave(0);
 		}
 	}
 	return 0;	

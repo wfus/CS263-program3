@@ -24,7 +24,6 @@ void calculate_packet_sizes(const u_char *packet, struct packet_info* info);
 
 void attack_packet(libnet_t* l, struct pcap_pkthdr* cap_header, const u_char* packet);
 
-void attack_packet_header(libnet_t* l, const u_char* packet, u_char* payload);
 
 void send_tcp_packet(libnet_t* l, struct in_addr srcip, struct in_addr dstip, u_short srcport, u_short dstport, uint32_t seq, uint32_t ack, struct ethernet_hdr* ethheader);
 

