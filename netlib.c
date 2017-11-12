@@ -105,7 +105,7 @@ void attack_packet(libnet_t* l, struct pcap_pkthdr* cap_header, const u_char* pa
 	tcpheader = (struct tcp_hdr*) (packet + LIBNET_ETH_H + LIBNET_TCP_H);
 
 	/* Build TCP header */
-	libnet_build_tcp(
+	t = libnet_build_tcp(
 		ntohs(tcpheader->tcp_dst_port),
 		ntohs(tcpheader->tcp_src_port),
 		ntohl(tcpheader->tcp_ack),
@@ -128,7 +128,7 @@ void attack_packet(libnet_t* l, struct pcap_pkthdr* cap_header, const u_char* pa
 		exit(1);
 	}
 
-	libnet_build_ipv4(
+	t = libnet_build_ipv4(
 		LIBNET_TCP_H,
 		IPTOS_LOWDELAY,
 		libnet_get_prand(LIBNET_PRu16),
@@ -164,8 +164,7 @@ void attack_packet(libnet_t* l, struct pcap_pkthdr* cap_header, const u_char* pa
 void send_rude_tcp(libnet_t* l, u_long srcip, u_long dstip, uint16_t srcport, uint16_t dstport, u_char flags, uint32_t seq, uint32_t ack, u_char* data, int datalength) {
 
 	libnet_ptag_t t;
-
-	libnet_build_tcp(
+	t = libnet_build_tcp(
 		srcport,
 		dstport,
 		seq,
@@ -188,7 +187,7 @@ void send_rude_tcp(libnet_t* l, u_long srcip, u_long dstip, uint16_t srcport, ui
 		exit(1);
 	}
 
-	libnet_build_ipv4(
+	t = libnet_build_ipv4(
 		LIBNET_TCP_H,
 		IPTOS_LOWDELAY,
 		libnet_get_prand(LIBNET_PRu16),
