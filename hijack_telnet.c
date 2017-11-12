@@ -18,7 +18,6 @@
 #define INFO_BUFFER 128
 
 #define RUDE_MESSAGE_LENGTH 1024
-#define MAX_FUCKS_GIVEN 10
 
 pcap_t* handler;
 libnet_t* netcons;
