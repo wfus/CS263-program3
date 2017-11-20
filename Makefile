@@ -4,25 +4,31 @@
 # rules to make the linker happy.
 
 
-CFLAGS=-std=gnu11 -O2 -Wall
-
+CFLAGS=-std=gnu11 -O2 
+LDFLAGS=-lpcap -lnet
 NOSEFLAGS=-v -s
 
 .PHONY: all
-all: sniffer rst_http hijack_telnet
+all: netlib netlog sniffer rst_http hijack_telnet
 
 .PHONY: clean
 clean:
-	rm -f sniffer rst_http hijack_telnet
+	rm -f sniffer rst_http hijack_telnet netlib netlog
+
+netlib: netlib.h netlib.c
+	gcc $(CFLAGS) -c netlib.c $(LDFLAGS)
+
+netlog: netlog.h netlog.c
+	gcc $(CFLAGS) -c netlog.c $(LDFLAGS)
 
 sniffer: sniffer.h sniffer.c
-	gcc $(CFLAGS) -o sniffer sniffer.c
+	gcc $(CFLAGS) -o sniffer sniffer.c netlib.c netlog.c $(LDFLAGS)
 
 rst_http: sniffer.h rst_http.c
-	gcc $(CFLAGS) -o rst_http rst_http.c
+	gcc $(CFLAGS) -o rst_http rst_http.c netlib.c netlog.c $(LDFLAGS)
 
 hijack_telnet: sniffer.h hijack_telnet.c
-	gcc $(CFLAGS) -o hijack_telnet hijack_telnet.c
+	gcc $(CFLAGS) -o hijack_telnet hijack_telnet.c netlib.c netlog.c $(LDFLAGS)
 
 
 # Do NOT change anything below!

@@ -23,6 +23,10 @@
 //the header.
 #define MAX_ETH_FRAME_LEN   1522
 
+//The size of a word in the machines we will be using
+#define INFO_WORD_SIZE 4
+
+
 //Ethernet header
 struct ethernet_hdr{
         u_char  ether_dst_addr[ETH_ADDR_LEN]; /* destination host address */
